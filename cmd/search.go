@@ -8,41 +8,70 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/raymanovg/opsearch/matcher"
 )
 
-type URLFlag struct {
-	url *url.URL
-}
+type (
+	MatcherFlag struct {
+		match matcher.Matcher
+	}
 
-func (f *URLFlag) String() string {
-	if f.url == nil {
+	URLFlag struct {
+		url *url.URL
+	}
+)
+
+func (mf *MatcherFlag) String() string {
+	if mf.match == nil {
 		return ""
 	}
 
-	return f.url.String()
+	return mf.match.StringName()
 }
 
-func (f *URLFlag) Set(value string) error {
+func (mf *MatcherFlag) Set(value string) error {
+	if match, exist := matcher.Matchers[value]; exist {
+		mf.match = match
+		return nil
+	}
+
+	return fmt.Errorf("There is no matcher %s", value)
+
+}
+
+func (uf *URLFlag) String() string {
+	if uf.url == nil {
+		return ""
+	}
+
+	return uf.url.String()
+}
+
+func (uf *URLFlag) Set(value string) error {
 	parsedURL, err := url.Parse(value)
 	if err != nil {
 		return fmt.Errorf("Cannot parse url: %v", err)
 	}
 
-	f.url = parsedURL
+	uf.url = parsedURL
 
 	return nil
 }
 
-var arg URLFlag
+var (
+	URLArg        URLFlag
+	matcherEngine MatcherFlag
+)
 
 func init() {
-	flag.Var(&arg, "url", "Page url to search official page links")
+	flag.Var(&URLArg, "url", "Page url to search official page links")
+	flag.Var(&matcherEngine, "matcher", "Name of matcher engine")
 }
 
 func main() {
 	flag.Parse()
 
-	pageURL := arg.url
+	pageURL := URLArg.url
 	fmt.Printf("Looging for op links on page %s", pageURL.String())
 	links, err := search(pageURL)
 	if err != nil {
@@ -68,7 +97,7 @@ func search(pageURL *url.URL) ([]*url.URL, error) {
 		return nil, err
 	}
 
-	return scrapLinks(document), nil
+	return matcherEngine.match.Match(document), nil
 }
 
 func loadPageContent(pageURL string) (io.ReadCloser, error) {
@@ -78,23 +107,4 @@ func loadPageContent(pageURL string) (io.ReadCloser, error) {
 	}
 
 	return resp.Body, nil
-}
-
-func scrapLinks(document *goquery.Document) []*url.URL {
-	var links []*url.URL
-	document.Find("a").Each(func(i int, s *goquery.Selection) {
-		link, exist := s.Attr("href")
-		if !exist {
-			return
-		}
-
-		parsedLink, err := url.Parse(link)
-		if err != nil {
-			return
-		}
-
-		links = append(links, parsedLink)
-	})
-
-	return links
 }
