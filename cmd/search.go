@@ -40,4 +40,5 @@ func main() {
 
 	pageURL := arg.url
 	fmt.Printf("Looging for op links on page %s", pageURL.String())
+
 }
