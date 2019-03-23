@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 )
 
@@ -40,5 +43,37 @@ func main() {
 
 	pageURL := arg.url
 	fmt.Printf("Looging for op links on page %s", pageURL.String())
+	links, err := search(pageURL)
+	if err != nil {
+		fmt.Printf("Could not find op links: %v", err)
+		return
+	}
 
+	for _, link := range links {
+		fmt.Printf("\n -- %s", link.String())
+	}
+}
+
+func search(pageURL *url.URL) ([]*url.URL, error) {
+	contentBody, err := loadPageContent(pageURL.String())
+	if err != nil {
+		return nil, err
+	}
+
+	html, _ := ioutil.ReadAll(contentBody)
+
+	fmt.Println(string(html))
+
+	defer contentBody.Close()
+
+	return []*url.URL{}, nil
+}
+
+func loadPageContent(pageURL string) (io.ReadCloser, error) {
+	resp, err := http.Get(pageURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Body, nil
 }
