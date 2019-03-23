@@ -4,9 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type URLFlag struct {
@@ -60,13 +61,14 @@ func search(pageURL *url.URL) ([]*url.URL, error) {
 		return nil, err
 	}
 
-	html, _ := ioutil.ReadAll(contentBody)
-
-	fmt.Println(string(html))
-
 	defer contentBody.Close()
 
-	return []*url.URL{}, nil
+	document, err := goquery.NewDocumentFromReader(contentBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return scrapLinks(document), nil
 }
 
 func loadPageContent(pageURL string) (io.ReadCloser, error) {
@@ -76,4 +78,23 @@ func loadPageContent(pageURL string) (io.ReadCloser, error) {
 	}
 
 	return resp.Body, nil
+}
+
+func scrapLinks(document *goquery.Document) []*url.URL {
+	var links []*url.URL
+	document.Find("a").Each(func(i int, s *goquery.Selection) {
+		link, exist := s.Attr("href")
+		if !exist {
+			return
+		}
+
+		parsedLink, err := url.Parse(link)
+		if err != nil {
+			return
+		}
+
+		links = append(links, parsedLink)
+	})
+
+	return links
 }
