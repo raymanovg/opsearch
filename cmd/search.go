@@ -8,71 +8,24 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/raymanovg/opsearch/matcher"
+	cmdFlag "github.com/raymanovg/opsearch/cmd/flag"
 	_ "github.com/raymanovg/opsearch/matcher/engine"
 )
 
-type (
-	MatcherFlag struct {
-		match matcher.Matcher
-	}
-
-	URLFlag struct {
-		url *url.URL
-	}
-)
-
-func (mf *MatcherFlag) String() string {
-	if mf.match == nil {
-		return ""
-	}
-
-	return mf.match.StringName()
-}
-
-func (mf *MatcherFlag) Set(value string) error {
-	if match, exist := matcher.Matchers[value]; exist {
-		mf.match = match
-		return nil
-	}
-
-	return fmt.Errorf("There is no matcher %s", value)
-
-}
-
-func (uf *URLFlag) String() string {
-	if uf.url == nil {
-		return ""
-	}
-
-	return uf.url.String()
-}
-
-func (uf *URLFlag) Set(value string) error {
-	parsedURL, err := url.Parse(value)
-	if err != nil {
-		return fmt.Errorf("Cannot parse url: %v", err)
-	}
-
-	uf.url = parsedURL
-
-	return nil
-}
-
 var (
-	URLArg        URLFlag
-	matcherEngine MatcherFlag
+	pageURLArg       cmdFlag.URLFlag
+	matcherEngineArg cmdFlag.MatcherFlag
 )
 
 func init() {
-	flag.Var(&URLArg, "url", "Page url to search official page links")
-	flag.Var(&matcherEngine, "matcher", "Name of matcher engine")
+	flag.Var(&pageURLArg, "url", "Page url to search official page links")
+	flag.Var(&matcherEngineArg, "matcher", "Name of matcher engine")
 }
 
 func main() {
 	flag.Parse()
 
-	pageURL := URLArg.url
+	pageURL := pageURLArg.URL
 	fmt.Printf("Looging for op links on page %s", pageURL.String())
 	links, err := search(pageURL)
 	if err != nil {
@@ -98,7 +51,7 @@ func search(pageURL *url.URL) ([]*url.URL, error) {
 		return nil, err
 	}
 
-	return matcherEngine.match.Match(document), nil
+	return matcherEngineArg.Engine.Match(document), nil
 }
 
 func loadPageContent(pageURL string) (io.ReadCloser, error) {
