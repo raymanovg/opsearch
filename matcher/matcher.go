@@ -42,7 +42,7 @@ var Services = []service{
 var Matchers map[string]Matcher
 
 type Matcher interface {
-	Match(document *goquery.Document) []*url.URL
+	Match(pageURL *url.URL, document *goquery.Document) []*url.URL
 	StringName() string
 }
 

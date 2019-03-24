@@ -12,7 +12,7 @@ type domainMatcher struct{}
 
 var engine domainMatcher
 
-func (dm *domainMatcher) Match(document *goquery.Document) []*url.URL {
+func (dm *domainMatcher) Match(pageURL *url.URL, document *goquery.Document) []*url.URL {
 	var links []*url.URL
 	for _, service := range matcher.Services {
 		fmt.Printf("Loking for links for %s \n", service.Name)

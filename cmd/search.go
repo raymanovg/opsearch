@@ -61,7 +61,7 @@ func search(pageURL *url.URL) ([]*url.URL, error) {
 		return nil, err
 	}
 
-	return matcherEngineArg.Engine.Match(document), nil
+	return matcherEngineArg.Engine.Match(pageURL, document), nil
 }
 
 func loadPageContent(pageURL string) (io.ReadCloser, error) {
