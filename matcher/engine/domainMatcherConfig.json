@@ -1,0 +1,29 @@
+{
+    "settings" : [
+        {
+            "sf" : "facebook",
+            "domains" : [
+                "facebook.com"
+            ]
+        },
+        {
+            "sf": "vk",
+            "domains": [
+                "vk.com",
+                "vkontakte.ru"
+            ]
+        },
+        {
+            "sf": "twitter",
+            "domains" : [
+                "twitter.com"
+            ]
+        },
+        {
+            "sf": "ok",
+            "domains": [
+                "ok.ru"
+            ]
+        }
+    ]
+}

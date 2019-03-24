@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -26,7 +27,12 @@ func main() {
 	flag.Parse()
 
 	pageURL := pageURLArg.URL
-	fmt.Printf("Looging for op links on page %s", pageURL.String())
+	if pageURL == nil {
+		fmt.Println("There is no page url to search in")
+		return
+	}
+
+	fmt.Printf("Looking for op links on page %s \n", pageURL.String())
 	links, err := search(pageURL)
 	if err != nil {
 		fmt.Printf("Could not find op links: %v", err)
@@ -39,6 +45,10 @@ func main() {
 }
 
 func search(pageURL *url.URL) ([]*url.URL, error) {
+	if matcherEngineArg.Engine == nil {
+		return nil, errors.New("There is no match engine to search by")
+	}
+
 	contentBody, err := loadPageContent(pageURL.String())
 	if err != nil {
 		return nil, err
