@@ -9,6 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/raymanovg/opsearch/matcher"
+	_ "github.com/raymanovg/opsearch/matcher/engine"
 )
 
 type (
